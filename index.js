@@ -2,7 +2,7 @@ const { Client, LocalAuth, Poll } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const http = require('http');
 
-// خادم وهمي لإبقاء الاستضافة نشطة
+// خادم لإبقاء الاستضافة نشطة
 const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -11,7 +11,7 @@ http.createServer((req, res) => {
     console.log(`Server is listening on port ${PORT}`);
 });
 
-// إعداد البوت للعمل في بيئة السحاب
+// إعداد البوت للعمل في البيئة السحابية
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
