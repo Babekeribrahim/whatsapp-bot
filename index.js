@@ -2,20 +2,20 @@ const { Client, LocalAuth, Poll } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const http = require('http');
 
-// خادم لإبقاء الاستضافة نشطة
-const PORT = process.env.PORT || 3000;
+// خادم لإبقاء الخدمة نشطة على Render
+const PORT = process.env.PORT || 10000;
 http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('WhatsApp Bot is Running!');
+    res.end('WhatsApp Bot Server is Running');
 }).listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
 });
 
-// إعداد البوت للعمل في البيئة السحابية
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: true,
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/opt/render/.cache/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome',
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -23,6 +23,7 @@ const client = new Client({
             '--disable-accelerated-2d-canvas',
             '--no-first-run',
             '--no-zygote',
+            '--single-process',
             '--disable-gpu'
         ]
     }
