@@ -1,12 +1,45 @@
 const { Client, LocalAuth, Poll } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
+const qrcode = require('qrcode');
 const http = require('http');
 
-// خادم لإبقاء الخدمة نشطة
+let lastQrCodeData = null;
+
+// خادم لعرض رمز الـ QR عبر المتصفح وإبقاء الخدمة نشطة
 const PORT = process.env.PORT || 10000;
-http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('WhatsApp Bot Server is Running');
+http.createServer(async (req, res) => {
+    if (lastQrCodeData) {
+        try {
+            const qrImage = await qrcode.toDataURL(lastQrCodeData);
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+            res.end(`
+                <!DOCTYPE html>
+                <html dir="rtl">
+                <head>
+                    <title>ربط واتساب بوت</title>
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                    <style>
+                        body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: sans-serif; background: #f0f2f5; margin: 0; }
+                        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+                        img { width: 260px; height: 260px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="card">
+                        <h2>امسح رمز الـ QR لربط الواتساب</h2>
+                        <img src="${qrImage}" alt="QR Code" />
+                        <p>افتح الواتساب > الأجهزة المرتبطة > ربط جهاز</p>
+                    </div>
+                </body>
+                </html>
+            `);
+        } catch (err) {
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('خطأ في توليد الرمز');
+        }
+    } else {
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end('<h2 style="text-align:center;margin-top:50px;font-family:sans-serif;">✅ البوت متصل بالواتساب وجاهز للعمل!</h2>');
+    }
 }).listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
 });
@@ -30,13 +63,12 @@ const client = new Client({
 });
 
 client.on('qr', (qr) => {
-    console.log('\n==========================================');
-    console.log('امسح رمز الـ QR أدناه باستخدام الواتساب:');
-    console.log('==========================================\n');
-    qrcode.generate(qr, { small: true });
+    lastQrCodeData = qr;
+    console.log('تم توليد رمز QR جديد، افتح رابط الخدمة في المتصفح لمسحه.');
 });
 
 client.on('ready', () => {
+    lastQrCodeData = null;
     console.log('\n✅ البوت متصل بالواتساب وجاهز لاستقبال الأوامر في القروبات!');
 });
 
